@@ -17,8 +17,8 @@
       "env": {
         "SONARQUBE_URL": "https://sc-staging.io",
         "SONARQUBE_ORG": "the-dna-squad",
-        "SONAR_SQ_PROJECT_KEY": "the-dna-squad_gctoolkit-upstream-main",
-        "SONAR_SQ_BRANCH": "upstream-main",
+        "SONAR_SQ_PROJECT_KEY": "the-dna-squad_gctoolkit-main",
+        "SONAR_SQ_BRANCH": "main",
         "SONARQUBE_TOOLSETS": "cag,projects,analysis",
         "SONARQUBE_ADVANCED_ANALYSIS_ENABLED": "true"
       }
