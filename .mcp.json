@@ -1,0 +1,27 @@
+{
+  "mcpServers": {
+    "sonarqube": {
+      "command": "docker",
+      "args": [
+        "run", "-i", "--rm",
+        "-e", "SONARQUBE_URL",
+        "-e", "SONARQUBE_TOKEN",
+        "-e", "SONARQUBE_ORG",
+        "-e", "SONAR_SQ_PROJECT_KEY",
+        "-e", "SONAR_SQ_BRANCH",
+        "-e", "SONARQUBE_TOOLSETS",
+        "-e", "SONARQUBE_ADVANCED_ANALYSIS_ENABLED",
+        "-v", "/Users/chris.chedgey/Documents/git/gctoolkit:/app/mcp-workspace:rw",
+        "mcp/sonarqube:latest"
+      ],
+      "env": {
+        "SONARQUBE_URL": "https://sc-staging.io",
+        "SONARQUBE_ORG": "the-dna-squad",
+        "SONAR_SQ_PROJECT_KEY": "the-dna-squad_gctoolkit-upstream-main",
+        "SONAR_SQ_BRANCH": "upstream-main",
+        "SONARQUBE_TOOLSETS": "cag,projects,analysis",
+        "SONARQUBE_ADVANCED_ANALYSIS_ENABLED": "true"
+      }
+    }
+  }
+}
