@@ -18,7 +18,7 @@
         "SONARQUBE_URL": "https://sc-staging.io",
         "SONARQUBE_ORG": "the-dna-squad",
         "SONAR_SQ_PROJECT_KEY": "the-dna-squad_gctoolkit-main",
-        "SONAR_SQ_BRANCH": "main",
+        "SONAR_SQ_BRANCH": "master",
         "SONARQUBE_TOOLSETS": "cag,projects,analysis",
         "SONARQUBE_ADVANCED_ANALYSIS_ENABLED": "true"
       }
