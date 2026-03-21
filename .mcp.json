@@ -12,7 +12,7 @@
         "-e", "SONARQUBE_TOOLSETS",
         "-e", "SONARQUBE_ADVANCED_ANALYSIS_ENABLED",
         "-v", "/Users/chris.chedgey/Documents/git/gctoolkit:/app/mcp-workspace:rw",
-        "mcp/sonarqube:latest"
+        "sq-mcp-cag-alpha:20260303-8a85a46-arm64"
       ],
       "env": {
         "SONARQUBE_URL": "https://sc-staging.io",
