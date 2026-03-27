@@ -11,16 +11,19 @@
         "-e", "SONAR_SQ_BRANCH",
         "-e", "SONARQUBE_TOOLSETS",
         "-e", "SONARQUBE_ADVANCED_ANALYSIS_ENABLED",
+        "-e", "WORKSPACE_ROOT",
         "-v", "/Users/chris.chedgey/Documents/git/gctoolkit:/app/mcp-workspace:rw",
-        "sq-mcp-cag-alpha:20260303-8a85a46-arm64"
+        "mcp/sonarqube:latest"
       ],
       "env": {
         "SONARQUBE_URL": "https://sc-staging.io",
+        "SONARQUBE_TOKEN": "c1037e677c82c714a71eccb3124504b41c0a0431",
         "SONARQUBE_ORG": "the-dna-squad",
-        "SONAR_SQ_PROJECT_KEY": "the-dna-squad_gctoolkit-main",
+        "SONAR_SQ_PROJECT_KEY": "the-dna-squad_gctoolkit-pr455-after",
         "SONAR_SQ_BRANCH": "master",
         "SONARQUBE_TOOLSETS": "cag,projects,analysis",
-        "SONARQUBE_ADVANCED_ANALYSIS_ENABLED": "true"
+        "SONARQUBE_ADVANCED_ANALYSIS_ENABLED": "true",
+        "WORKSPACE_ROOT": "/app/mcp-workspace"
       }
     }
   }
