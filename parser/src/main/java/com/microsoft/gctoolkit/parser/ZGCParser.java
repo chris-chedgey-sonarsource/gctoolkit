@@ -14,7 +14,7 @@ import com.microsoft.gctoolkit.event.zgc.ZGCAllocatedSummary;
 import com.microsoft.gctoolkit.event.zgc.ZGCGarbageSummary;
 import com.microsoft.gctoolkit.event.zgc.ZGCHeapCapacitySummary;
 import com.microsoft.gctoolkit.event.zgc.ZGCLiveSummary;
-import com.microsoft.gctoolkit.event.zgc.OccupancySummary;
+import com.microsoft.gctoolkit.event.zgc.ZGCUsedSummary;
 import com.microsoft.gctoolkit.event.zgc.ZGCCompactedSummary;
 import com.microsoft.gctoolkit.event.zgc.ZGCFullCollection;
 import com.microsoft.gctoolkit.event.zgc.ZGCYoungCollection;
@@ -23,7 +23,7 @@ import com.microsoft.gctoolkit.event.zgc.ZGCNMethodSummary;
 import com.microsoft.gctoolkit.event.zgc.ZGCPageSummary;
 import com.microsoft.gctoolkit.event.zgc.ZGCPhase;
 import com.microsoft.gctoolkit.event.zgc.ZGCPromotedSummary;
-import com.microsoft.gctoolkit.event.zgc.ZGCReclaimSummary;
+import com.microsoft.gctoolkit.event.zgc.ZGCReclaimedSummary;
 import com.microsoft.gctoolkit.event.zgc.ZGCCycleType;
 import com.microsoft.gctoolkit.event.zgc.ZGCCollection;
 import com.microsoft.gctoolkit.event.zgc.ZGCMarkSummary;
@@ -194,17 +194,33 @@ public class ZGCParser extends UnifiedGCLogParser implements ZGCPatterns {
 
     private void cycleStart(GCLogTrace trace, String s) {
         ZGCCycleType type = ZGCCycleType.get(trace.getGroup(2));
+        
+        if (diary.isGenerationalZGC()) {
+        	// cycleStart ends up being called for ZGC logging with no details, but did not handle this situation.  
+        	// It is not clear if there is any differentiation between Young/Old Phases in no-details logging, so I've made
+        	// an assumption here that we're strictly dealing with Young collections until we have sample logging otherwise.
+        	if (ZGCCycleType.MAJOR.equals(type)) {
+        		setForwardRefForPhase(
+        				ZGCPhase.MAJOR_YOUNG, 
+        				new ZGCForwardReference(getClock(), trace.getLongGroup(1), trace.gcCause(3,0), type, ZGCPhase.MAJOR_YOUNG));
+        	} else if (ZGCCycleType.MINOR.equals(type)) {
+        		setForwardRefForPhase(
+        				ZGCPhase.MINOR_YOUNG, 
+        				new ZGCForwardReference(getClock(), trace.getLongGroup(1), trace.gcCause(3,0), type, ZGCPhase.MINOR_YOUNG));        		
+        	} 
+        		
+        } 
+        
         if(type == ZGCCycleType.FULL){
             setForwardRefForPhase(
                     ZGCPhase.FULL,
                     new ZGCForwardReference(getClock(), trace.getLongGroup(1), trace.gcCause(3,0), type, ZGCPhase.FULL)
             );
-        }
-        else {
+        } else {
             // The cycle start message gives us the gc cause, which we need to create the GCEvent in generationStart
             // When we get a cycle start, store the gc cause for later use
             gcCauseMap.put(trace.getLongGroup(1), trace.gcCause(1, 2));
-        }
+        }         
     }
 
     private void generationStart(GCLogTrace trace, String line){
@@ -447,12 +463,12 @@ public class ZGCParser extends UnifiedGCLogParser implements ZGCPatterns {
 
         if (genHeapStats) {
             if ("Used".equals(trace.getGroup(2))){
-                OccupancySummary summary = new OccupancySummary(
+                ZGCUsedSummary summary = new ZGCUsedSummary(
                         trace.toKBytes(3),
                         trace.toKBytes(6),
                         trace.toKBytes(9),
                         trace.toKBytes(12));
-                ref.setGenerationUsedSummary(phase, summary);
+                ref.setUsedSummary(phase, summary);
             } else {
                 trace.notYetImplemented();
             }
@@ -504,8 +520,8 @@ public class ZGCParser extends UnifiedGCLogParser implements ZGCPatterns {
         ZGCForwardReference ref = getForwardRefForPhase(trace.getZCollectionPhase());
 
         if ("Reclaimed".equals(trace.getGroup(2))) {
-            ref.setReclaimSummary(
-                    new ZGCReclaimSummary(
+            ref.setReclaimedSummary(
+                    new ZGCReclaimedSummary(
                             trace.toKBytes(3),
                             trace.toKBytes(6)
                     )
@@ -549,11 +565,28 @@ public class ZGCParser extends UnifiedGCLogParser implements ZGCPatterns {
     }
 
     private void memorySummary(GCLogTrace trace, String s) {
-        if(diary.isGenerationalZGC()){
+        if (diary.isGenerationalZGC()) {
             long gcId = trace.getLongGroup(1);
-            gcCauseMap.remove(gcId);
+            
+            if (gcCauseMap.containsKey(gcId)) {
+            	gcCauseMap.remove(gcId);
+            } 
+            
+            // Publish a non-detailed generational event if present.
+            publishIfMemorySummaryMissing(trace);
+            
         } else {
             ZGCForwardReference forwardReference = getForwardRefForPhase(ZGCPhase.FULL);
+            
+        	// For Legacy ZGC (Java 17, non-generational) with no details (gc instead of gc*), only a single line
+        	// is logged per event. As such, getForwardRefForPhase will return NULL. 
+        	if (forwardReference == null) {
+        		// Forward reference has not yet been created, so we'll create it now
+        		ZGCCycleType type = ZGCCycleType.get(trace.getGroup(2));
+        		forwardReference = new ZGCForwardReference(
+        				getClock(), trace.getLongGroup(1), trace.gcCause(3,0), type, ZGCPhase.FULL);
+        	}
+        	
             forwardReference.setMemorySummary(
                     new ZGCMemorySummary(
                             trace.toKBytes(4),
@@ -563,8 +596,27 @@ public class ZGCParser extends UnifiedGCLogParser implements ZGCPatterns {
         // TODO - Get rid of this?
         Arrays.fill(heapCapacity, 0L);
     }
-
-
+    
+    private void publishIfMemorySummaryMissing(GCLogTrace trace) {
+    	if (trace == null)
+    		return;
+    	
+        // We use the lack of a MemorySummary in the forwardReference as a sign
+    	// that we need to publish a Generational no-details event.
+   		ZGCCycleType cycleType = ZGCCycleType.get(trace.getGroup(2));
+    	ZGCForwardReference forwardReference = ZGCCycleType.MAJOR.equals(cycleType) ? 
+    			getForwardRefForPhase(ZGCPhase.MAJOR_YOUNG) :
+    			getForwardRefForPhase(ZGCPhase.MINOR_YOUNG);
+    	
+    	if (forwardReference != null && !forwardReference.hasMemorySummary()) {
+            forwardReference.setMemorySummary(
+                    new ZGCMemorySummary(
+                            trace.toKBytes(4),
+                            trace.toKBytes(7)));
+            publish(forwardReference.getGCEVent(getClock()));    		
+    	}
+    }
+    
     private void log(String line) {
         GCToolKit.LOG_DEBUG_MESSAGE(() -> "ZGCHeapParser missed: " + line);
 
@@ -659,7 +711,7 @@ public class ZGCParser extends UnifiedGCLogParser implements ZGCPatterns {
         private ZGCLiveSummary liveSummary;
         private ZGCAllocatedSummary allocatedSummary;
         private ZGCGarbageSummary garbageSummary;
-        private ZGCReclaimSummary reclaimSummary;
+        private ZGCReclaimedSummary reclaimedSummary;
         private ZGCMemorySummary memorySummary;
         private ZGCMetaspaceSummary metaspaceSummary;
         private ZGCMarkSummary markSummary;
@@ -682,7 +734,7 @@ public class ZGCParser extends UnifiedGCLogParser implements ZGCPatterns {
         private ZGCPromotedSummary promotedSummary;
         private ZGCCompactedSummary compactedSummary;
         private Double gcDuration;
-        private OccupancySummary generationUsedSummary;
+        private ZGCUsedSummary usedSummary;
         private ZGCReferenceSummary softRefSummary;
         private ZGCReferenceSummary weakRefSummary;
         private ZGCReferenceSummary finalRefSummary;
@@ -746,7 +798,7 @@ public class ZGCParser extends UnifiedGCLogParser implements ZGCPatterns {
             cycle.setConcurrentRemapRoots(concurrentRemapRootsStart, concurrentRemapRootsDuration);
             cycle.setPromotedSummary(promotedSummary);
             cycle.setCompactedSummary(compactedSummary);
-            cycle.setGenerationUsedSummary(generationUsedSummary);
+            cycle.setUsedSummary(usedSummary);
             cycle.setSoftRefSummary(softRefSummary);
             cycle.setWeakRefSummary(weakRefSummary);
             cycle.setFinalRefSummary(finalRefSummary);
@@ -761,7 +813,7 @@ public class ZGCParser extends UnifiedGCLogParser implements ZGCPatterns {
             cycle.setLiveSummary(liveSummary);
             cycle.setAllocatedSummary(allocatedSummary);
             cycle.setGarbageSummary(garbageSummary);
-            cycle.setReclaimSummary(reclaimSummary);
+            cycle.setReclaimedSummary(reclaimedSummary);
             cycle.setMemorySummary(memorySummary);
             cycle.setMetaspaceSummary(metaspaceSummary);
             cycle.setLoadAverages(load);
@@ -876,14 +928,18 @@ public class ZGCParser extends UnifiedGCLogParser implements ZGCPatterns {
             this.garbageSummary = summary;
         }
 
-        public void setReclaimSummary(ZGCReclaimSummary summary) {
-            reclaimSummary = summary;
+        public void setReclaimedSummary(ZGCReclaimedSummary summary) {
+            reclaimedSummary = summary;
         }
 
         public void setMemorySummary(ZGCMemorySummary summary) {
             this.memorySummary = summary;
         }
 
+        public boolean hasMemorySummary() {
+        	return this.memorySummary != null;
+        }
+        
         public void setMetaspaceSummary(ZGCMetaspaceSummary summary) {
             this.metaspaceSummary = summary;
         }
@@ -978,7 +1034,7 @@ public class ZGCParser extends UnifiedGCLogParser implements ZGCPatterns {
             this.gcDuration = gcDuration;
         }
 
-        public void setGenerationUsedSummary(ZGCPhase phase, OccupancySummary summary) {
+        public void setUsedSummary(ZGCPhase phase, ZGCUsedSummary summary) {
             switch (phase) {
                 case FULL:
                     // does not apply to non generational GC
@@ -986,7 +1042,7 @@ public class ZGCParser extends UnifiedGCLogParser implements ZGCPatterns {
                 case MAJOR_YOUNG:
                 case MAJOR_OLD:
                 case MINOR_YOUNG:
-                    this.generationUsedSummary = summary;
+                    this.usedSummary = summary;
                     break;
             }
         }
