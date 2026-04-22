@@ -87,7 +87,7 @@
     <modules>
         <module>gclogs</module>
         <module>api</module>
-        <module>events</module>
+        <module>event</module>
         <module>parser</module>
         <module>vertx</module>
         <module>sample</module>
