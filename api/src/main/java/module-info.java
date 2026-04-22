@@ -30,7 +30,7 @@ import com.microsoft.gctoolkit.jvm.UnifiedJavaVirtualMachine;
  * @uses com.microsoft.gctoolkit.aggregator.Aggregator
  */
 module com.microsoft.gctoolkit.api {
-    requires transitive gctoolkit.utils;
+    requires transitive com.microsoft.gctoolkit.utils;
     requires java.logging;
 
     exports com.microsoft.gctoolkit;
