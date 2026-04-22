@@ -14,4 +14,11 @@
     <description>Events module for GCToolKit.</description>
     <url>${project.parent.url}</url>
 
+    <dependencies>
+        <dependency>
+            <groupId>com.microsoft.gctoolkit</groupId>
+            <artifactId>gctoolkit-api</artifactId>
+        </dependency>
+    </dependencies>
+
 </project>

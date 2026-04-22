@@ -35,11 +35,7 @@ module com.microsoft.gctoolkit.api {
     exports com.microsoft.gctoolkit;
     exports com.microsoft.gctoolkit.aggregator;
     exports com.microsoft.gctoolkit.event;
-    exports com.microsoft.gctoolkit.event.g1gc;
-    exports com.microsoft.gctoolkit.event.generational;
     exports com.microsoft.gctoolkit.event.jvm;
-    exports com.microsoft.gctoolkit.event.shenandoah;
-    exports com.microsoft.gctoolkit.event.zgc;
     exports com.microsoft.gctoolkit.io;
     exports com.microsoft.gctoolkit.jvm;
     exports com.microsoft.gctoolkit.time;

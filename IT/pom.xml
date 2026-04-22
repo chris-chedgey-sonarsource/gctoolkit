@@ -25,6 +25,10 @@
         </dependency>
         <dependency>
             <groupId>com.microsoft.gctoolkit</groupId>
+            <artifactId>gctoolkit-event</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.microsoft.gctoolkit</groupId>
             <artifactId>gctoolkit-parser</artifactId>
         </dependency>
         <dependency>

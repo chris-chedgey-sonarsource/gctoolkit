@@ -6,6 +6,7 @@
  */
 module com.microsoft.gctoolkit.sample {
     requires com.microsoft.gctoolkit.api;
+    requires com.microsoft.gctoolkit.event;
     requires java.logging;
 
     exports com.microsoft.gctoolkit.sample;
