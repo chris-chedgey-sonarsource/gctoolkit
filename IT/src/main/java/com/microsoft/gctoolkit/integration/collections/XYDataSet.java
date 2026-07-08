@@ -1,5 +1,7 @@
 package com.microsoft.gctoolkit.integration.collections;
 
+import com.microsoft.gctoolkit.parser.UnifiedG1GCParser;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.OptionalDouble;
@@ -70,6 +72,8 @@ public class XYDataSet {
     public int size() {
         return dataSeries.size();
     }
+
+    public void setParser(UnifiedG1GCParser parser) {}
 
     public Stream<com.microsoft.gctoolkit.integration.collections.XYDataSet.Point> stream() {
         return dataSeries.stream();
