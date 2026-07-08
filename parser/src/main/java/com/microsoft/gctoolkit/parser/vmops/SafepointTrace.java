@@ -5,6 +5,8 @@ package com.microsoft.gctoolkit.parser.vmops;
 
 import com.microsoft.gctoolkit.event.jvm.Safepoint;
 import com.microsoft.gctoolkit.parser.AbstractLogTrace;
+import com.microsoft.gctoolkit.parser.unified.GenZPatterns;
+import com.microsoft.gctoolkit.parser.unified.ZGCPatterns;
 import com.microsoft.gctoolkit.time.DateTimeStamp;
 
 import java.util.regex.Matcher;
@@ -70,6 +72,10 @@ public class SafepointTrace extends AbstractLogTrace {
     public int getTrapCount() {
         return getIntegerGroup(TRAP_COUNT);
     }
+
+    public void setZGCPatterns(ZGCPatterns patterns) {}
+
+    public void setGenZPatterns(GenZPatterns patterns) {}
 
     private double getTimeStampGroup() {
         return getDoubleGroup(TIME_STAMP);
