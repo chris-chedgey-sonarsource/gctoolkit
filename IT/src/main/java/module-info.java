@@ -7,7 +7,6 @@
 open module com.microsoft.gctoolkit.integration {
 
     requires com.microsoft.gctoolkit.api;
-    requires com.microsoft.gctoolkit.parser;
     requires java.logging;
 
     exports com.microsoft.gctoolkit.integration.aggregation to
