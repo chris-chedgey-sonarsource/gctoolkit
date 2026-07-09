@@ -249,4 +249,6 @@ public class UnifiedDiarizer implements Diarizer {
         return diary.getTimeOfFirstEvent();
     }
 
+    public void setFlags(JVMFlags flags) {}
+
 }
