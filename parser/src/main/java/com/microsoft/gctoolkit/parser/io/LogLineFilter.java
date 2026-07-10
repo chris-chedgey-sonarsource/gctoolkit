@@ -2,8 +2,6 @@
 // Licensed under the MIT License.
 package com.microsoft.gctoolkit.parser.io;
 
-import com.microsoft.gctoolkit.parser.collection.RuleSet;
-
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -59,7 +57,5 @@ public class LogLineFilter {
 
         return line;
     }
-
-    public void setRuleSet(RuleSet ruleSet) {}
 }
 
