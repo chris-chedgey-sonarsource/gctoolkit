@@ -1,10 +1,7 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
-package com.microsoft.gctoolkit.parser.io;
+package com.microsoft.gctoolkit.io;
 
-import com.microsoft.gctoolkit.io.DataSource;
-import com.microsoft.gctoolkit.io.GCLogFile;
-import com.microsoft.gctoolkit.io.LogFileMetadata;
 import com.microsoft.gctoolkit.jvm.Diary;
 
 import java.io.BufferedInputStream;
