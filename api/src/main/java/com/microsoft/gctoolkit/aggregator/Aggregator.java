@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 package com.microsoft.gctoolkit.aggregator;
 
+import com.microsoft.gctoolkit.GCToolKit;
 import com.microsoft.gctoolkit.event.jvm.JVMEvent;
 import com.microsoft.gctoolkit.event.jvm.JVMTermination;
 
@@ -159,6 +160,8 @@ public abstract class Aggregator<A extends Aggregation> {
      * @param eventSource to be checked.
      * @return true is the aggregator aggregates the event source
      */
+    public void setToolKit(GCToolKit toolKit) {}
+
     public boolean aggregates(EventSource eventSource) {
         return (eventSource != null) && aggregates(getClass(), eventSource);
     }
